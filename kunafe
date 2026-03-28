@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Responsive POS</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 0;
+    background: #0f1f1c;
+    color: white;
+  }
+
+  header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 10px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  header button {
+    background: #2e7d32;
+    border: none;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: background-color 0.25s ease;
+    min-width: 60px;
+  }
+
+  header button.active { background: #4caf50; }
+  header button:hover:not(.active) { background: #3b8a3c; }
+
+  .container { padding: 10px 15px; }
+
+  .tables {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .tables button {
+    flex: 1 1 110px;  /* responsive width */
+    max-width: 140px;
+    min-width: 90px;
+    height: 100px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background:
+      linear-gradient(#1f3d37,#1f3d37) padding-box,
+      linear-gradient(135deg,#d0aa61,#be8e46) border-box;
+    color: white;
+    white-space: pre-line;
+    cursor: pointer;
+    transition: 0.15s;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .tables button:active { filter: brightness(0.8); }
+  .tables button.ordered {
+    background:
+      linear-gradient(#2e7d32,#2e7d32) padding-box,
+      linear-gradient(135deg,#d0aa61,#be8e46) border-box !important;
+  }
+
+  .orderScreen { display: none; padding: 10px; }
+
+  .back {
+    width: 40px; height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: #444;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.15s;
+  }
+  .back:active { filter: brightness(0.7); }
+
+  .category, .peopleSelect {
+    display: flex;
+    gap: 6px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+  }
+
+  .category button {
+    flex: 1 1 100px;  /* responsive */
+    padding: 10px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #1b5e20, #43a047);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .category button:active { filter: brightness(0.7); }
+
+  .peopleSelect button {
+    flex: 0 0 28px;
+    padding: 5px 0;
+    border: 2px solid #d0aa61;
+    background: transparent;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 13px;
+    text-align: center;
+    transition: 0.2s;
+  }
+  .peopleSelect button:hover { background: #d0aa61; color: black; }
+  .peopleSelect button.selected { background: #d0aa61; color: black; }
+
+  .menu button {
+    width: 100%;
+    margin: 4px 0;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #1b5e20;
+    color: white;
+    text-align: left;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .menu button:active { filter: brightness(0.6); background: black !important; }
+
+  #items { font-size: 13px; white-space: pre-line; margin-top: 12px; font-weight: 400; }
+  #total { font-size: 18px; font-weight: bold; margin-top: 8px; }
+  #info { font-size: 13px; margin-top: 6px; }
+
+  .reset, .print {
+    margin-top: 10px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+  }
+  .reset { background: #d32f2f; margin-right: 10px; }
+  .reset:active { filter: brightness(0.8); }
+  .print { background: #388e3c; }
+  .print:active { filter: brightness(0.8); }
+
+  /* Settings Tab */
+  #settings { display: none; }
+  #printerStatus { margin-top: 12px; font-size: 14px; color: #ddd; }
+  #printerList { margin-top: 12px; max-height: 160px; overflow-y: auto; border: 1px solid #4a7c4a; border-radius: 8px; }
+  #printerList button {
+    width: 100%;
+    background: #2c5d4c;
+    border: none;
+    padding: 10px;
+    margin: 2px 0;
+    color: white;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 4px;
+  }
+  #printerList button.selected { background: #4caf50; color: black; font-weight: 700; }
+  #scanBtn {
+    margin-top: 10px;
+    background: #43a047;
+    border: none;
+    padding: 10px 15px;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  #scanBtn:active { filter: brightness(0.8); }
+
+  /* Responsive tweaks */
+  @media(max-width: 600px){
+    .tables button { font-size: 12px; min-width: 80px; height: 90px; }
+    .category button { font-size: 12px; flex: 1 1 80px; padding: 8px; }
+    #total { font-size: 16px; }
+    .reset, .print { font-size: 14px; padding: 6px 12px; }
+  }
+
+  @media(min-width: 601px) and (max-width: 1024px){
+    .tables button { font-size: 13px; min-width: 90px; height: 95px; }
+    .category button { font-size: 13px; flex: 1 1 90px; padding: 9px; }
+    #total { font-size: 17px; }
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <button id="menuBtn" class="active" title="Menu">Menu</button>
+  <button id="settingsBtn" title="Settings">Settings</button>
+</header>
+
+<div class="container">
+  <div id="menuScreen">
+    <div id="tableView" class="tables"></div>
+  </div>
+
+  <div id="orderView" class="orderScreen">
+    <button class="back" title="Back to Tables" onclick="goBack()">←</button>
+    <h2 id="tableTitle"></h2>
+    <div id="peopleSelect" class="peopleSelect"></div>
+    <div id="categoryView" class="category"></div>
+    <div id="itemView" class="menu"></div>
+    <h4 id="info"></h4>
+    <h3 id="items"></h3>
+    <h2 id="total"></h2>
+    <div>
+      <button class="reset" onclick="resetTable()">Reset</button>
+      <button class="print" onclick="printOrder()">Print</button>
+    </div>
+  </div>
+
+  <div id="settings">
+    <h2>Bluetooth Printer Settings</h2>
+    <button id="scanBtn">Scan for Bluetooth Printers</button>
+    <div id="printerStatus">No printer connected.</div>
+    <div id="printerList"></div>
+  </div>
+</div>
+
+<script>
+const menu = {
+  "KUNAFE":[{name:"KUNAFE GUIZ",price:4},{name:"KUNAFE XAME",price:4},{name:"KUNAFE PENIR",price:5},{name:"KUNAFE FISTEQ",price:5},{name:"KUNAFE SPECIAL",price:6},{name:"KUNAFE FISTEQ ZADE",price:7}],
+  "CREPE":[{name:"CREPE NOTELA",price:3.5},{name:"CREPE OREO",price:4},{name:"CREPE LOTTOS",price:5},{name:"CREPE SPECIAL",price:6},{name:"CREPE ROLL",price:4},{name:"BURGER PANCAKE",price:4},{name:"MINI PANCAKE",price:4}],
+  "JUICE":[{name:"PRTAQAL FRESH",price:2.5},{name:"MOZ",price:2.5},{name:"OREO",price:3},{name:"KOKTEL",price:3}],
+  "CAKES":[{name:"TRALICHE",price:1.5},{name:"TRAMISU",price:3}],
+  "BAKLAVA":[{name:"B GUIZ",price:3},{name:"SARMA",price:4},{name:"MEDIA",price:4},{name:"HAVOSH",price:5}]
+};
+
+let tables = {}, currentTable = null;
+
+const tableView = document.getElementById("tableView");
+const orderView = document.getElementById("orderView");
+const menuScreen = document.getElementById("menuScreen");
+const settingsScreen = document.getElementById("settings");
+const menuBtn = document.getElementById("menuBtn");
+const settingsBtn = document.getElementById("settingsBtn");
+
+menuBtn.addEventListener("click", () => {
+  menuBtn.classList.add("active");
+  settingsBtn.classList.remove("active");
+  menuScreen.style.display="block";
+  orderView.style.display="none";
+  settingsScreen.style.display="none";
+});
+settingsBtn.addEventListener("click", () => {
+  menuBtn.classList.remove("active");
+  settingsBtn.classList.add("active");
+  menuScreen.style.display="none";
+  orderView.style.display="none";
+  settingsScreen.style.display="block";
+});
+
+function createTables(){
+  for(let i=1;i<=8;i++){
+    tables[i]={items:[], total:0, people:null};
+    let b=document.createElement("button");
+    b.id="table"+i;
+    b.innerText="MEZI "+i;
+    b.onclick=()=>openTable(i);
+    tableView.appendChild(b);
+  }
+}
+
+function openTable(t){
+  currentTable=t;
+  menuScreen.style.display="none";
+  orderView.style.display="block";
+  settingsScreen.style.display="none";
+  showPeople(); loadCategories(); updateOrderUI();
+}
+
+function showPeople(){
+  let div=document.getElementById("peopleSelect");
+  div.innerHTML="";
+  for(let i=1;i<=5;i++){
+    let b=document.createElement("button");
+    b.innerText=i;
+    b.onclick=()=>{
+      tables[currentTable].people=i;
+      updateOrderUI();
+      updateTablesUI();
+      Array.from(div.children).forEach(btn=>btn.classList.remove("selected"));
+      b.classList.add("selected");
+    };
+    if(tables[currentTable].people===i) b.classList.add("selected");
+    div.appendChild(b);
+  }
+}
+
+function goBack(){ menuScreen.style.display="block"; orderView.style.display="none"; settingsScreen.style.display="none"; updateTablesUI(); }
+
+function loadCategories(){
+  let div=document.getElementById("categoryView"); div.innerHTML="";
+  for(let c in menu){
+    let b=document.createElement("button"); b.innerText=c; b.onclick=()=>loadItems(c);
+    div.appendChild(b);
+  }
+}
+
+function loadItems(c){
+  let div=document.getElementById("itemView"); div.innerHTML="";
+  menu[c].forEach(i=>{
+    let b=document.createElement("button"); b.innerText=i.name+" - "+i.price+" IQD";
+    b.onclick=()=>{
+      b.style.background="black";
+      setTimeout(()=>{ b.style.background="#1b5e20"; },150);
+      addItem(i.name,i.price);
+    };
+    div.appendChild(b);
+  });
+}
+
+function addItem(name,price){
+  tables[currentTable].items.push(name);
+  tables[currentTable].total+=price;
+  updateOrderUI();
+  updateTablesUI();
+}
+
+function updateOrderUI(){
+  let t=tables[currentTable]; document.getElementById("tableTitle").innerText="MEZI "+currentTable;
+  let counts={}, kunafeCount=0; t.items.forEach(i=>{ counts[i]=(counts[i]||0)+1; if(i.startsWith("KUNAFE")) kunafeCount++; });
+  document.getElementById("info").innerText="People: "+(t.people||0)+" | KUNAFE: "+kunafeCount;
+  let txt=""; for(let i in counts){ txt+=i+(counts[i]>1?" x"+counts[i]:"")+"\n"; }
+  document.getElementById("items").innerText=txt;
+  document.getElementById("total").innerText="Total: "+t.total+" IQD";
+}
+
+function updateTablesUI(){
+  for(let i=1;i<=8;i++){
+    let t=tables[i], b=document.getElementById("table"+i), kunafeCount=0;
+    t.items.forEach(x=>{ if(x.startsWith("KUNAFE")) kunafeCount++; });
+    if(t.total>0){ b.classList.add("ordered"); b.innerText="MEZI "+i+"\n("+t.total+" IQD)\nK:"+kunafeCount+"  P:"+(t.people||0); }
+    else { b.classList.remove("ordered"); b.innerText="MEZI "+i; }
+  }
+}
+
+function resetTable(){ tables[currentTable]={items:[], total:0, people:null}; updateOrderUI(); updateTablesUI(); }
+function printOrder(){ alert("Printing preview... (Demo)"); }
+
+createTables(); updateTablesUI();
+</script>
+
+</body>
+</html>
