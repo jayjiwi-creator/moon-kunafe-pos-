@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>POS - Professional Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@font-face {
+   font-family: 'Lama Sans';
+   src: url('#584_Arkan_Lama Sans Regular.ttf') format('truetype');
+}
+
+:root {
+   --bg-main: #010a08;      
+   --bg-panel: #031410;     
+   --bg-card: #061d18;      
+   --accent: #FFD700;       
+   --accent-light: #fff0a0; 
+   --text-main: #d1ddd9;    
+   --text-muted: #5c8577;   
+   --border: #ffd70022;     
+   --danger: #ef5350;
+}
+
+[data-theme="midnight-blue"] {
+   --bg-main: #02050a;      
+   --bg-panel: #050b1a;     
+   --bg-card: #0a1629;      
+   --accent: #00d4ff;       
+   --accent-light: #a0e9ff; 
+   --text-main: #e0e6ed;    
+   --text-muted: #62768e;   
+   --border: #00d4ff33;     
+}
+
+[data-theme="onyx-black"] {
+   --bg-main: #000000;      
+   --bg-panel: #0a0a0a;     
+   --bg-card: #111111;      
+   --accent: #ffffff;       
+   --accent-light: #cccccc; 
+   --text-main: #ffffff;    
+   --text-muted: #666666;   
+   --border: #333333;     
+}
+
+body {
+   margin: 0;
+   font-family: 'Lama Sans', 'Inter', sans-serif;
+   background: var(--bg-main);
+   color: var(--text-main);
+   min-height: 100vh;
+   overflow-x: hidden;
+   direction: rtl;
+   transition: all 0.5s ease;
+}
+
+.tables-header {
+    padding: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-action {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 10px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+.btn-action:hover { 
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+}
+
+.tables-container {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+   gap: 15px;
+   padding: 15px;
+   box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+    .tables-container { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; padding: 30px; }
+    .btn-action { padding: 12px 24px; font-size: 16px; }
+}
+
+.table-card {
+   background: var(--bg-card);
+   border-radius: 20px;
+   padding: 20px 10px;
+   text-align: center;
+   cursor: pointer;
+   position: relative;
+   border: 1px solid var(--border);
+   transition: all 0.3s ease;
+}
+
+.table-main-number {
+    font-size: 60px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 5px;
+    color: rgba(255,255,255,0.05);
+}
+
+@media (min-width: 768px) { .table-main-number { font-size: 90px; } }
+
+.table-card.active-table { border-color: var(--accent); }
+.table-card.active-table .table-main-number {
+    color: #FFEA00;
+    text-shadow: 0 0 30px rgba(255, 234, 0, 0.4);
+}
+
+.badge-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.badge { background: rgba(0, 0, 0, 0.4); color: var(--accent-light); padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); }
+
+.overlay-screen {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.95); z-index: 3000; padding: 15px; box-sizing: border-box;
+    overflow-y: auto;
+}
+.overlay-content {
+    max-width: 850px; margin: 0 auto; background: var(--bg-panel); 
+    border: 1px solid var(--accent); border-radius: 24px; padding: 20px; 
+    min-height: 80vh; display: flex; flex-direction: column;
+}
+
+.pos-screen { display: none; min-height: 100vh; padding: 10px; box-sizing: border-box; }
+.pos-layout { display: flex; flex-direction: column; gap: 15px; }
+
+@media (min-width: 1024px) {
+    .pos-layout { flex-direction: row; height: 95vh; }
+    .pos-screen { padding: 20px; }
+}
+
+.main-panel { flex: 2; display: flex; flex-direction: column; background: var(--bg-panel); border-radius: 24px; padding: 15px; border: 1px solid var(--border); }
+.receipt-panel { flex: 1; background: var(--bg-panel); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; border: 1px solid var(--border); min-height: 400px; }
+
+.categories { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 8px; 
+    margin-bottom: 15px; 
+}
+@media (min-width: 480px) { .categories { grid-template-columns: repeat(4, 1fr); } }
+
+.cat-btn { padding: 12px 5px; border-radius: 12px; background: var(--bg-main); color: var(--text-muted); text-align: center; cursor: pointer; border: 1px solid var(--border); font-weight: 700; font-family: inherit; font-size: 13px; }
+.cat-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+.items-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
+    gap: 10px; 
+    overflow-y: auto; 
+    max-height: 60vh;
+}
+@media (min-width: 1024px) { .items-grid { max-height: none; } }
+
+.item-card { background: var(--bg-card); padding: 15px; border-radius: 15px; cursor: pointer; border: 1px solid var(--border); font-size: 14px; text-align: center; }
+
+.order-row { display:flex; justify-content:space-between; margin-bottom:10px; cursor: pointer; padding: 8px; border-radius: 8px; font-size: 14px; }
+.order-row:hover { background: rgba(239, 83, 80, 0.1); color: var(--danger); }
+.grand-total { font-size: 20px; font-weight: 800; color: var(--accent); border-top: 1px solid var(--border); padding-top: 15px; margin-top: 15px; }
+
+.history-list { flex: 1; overflow-y: auto; margin: 15px 0; }
+.history-item { 
+    background: var(--bg-card); padding: 12px; border-radius: 15px; 
+    margin-bottom: 10px; border-right: 5px solid var(--accent);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px;
+}
+</style>
+</head>
+<body data-theme="emerald-comfort">
+
+<div id="tablesViewWrapper">
+    <div class="tables-header">
+        <button class="btn-action" onclick="toggleTheme()">🎨 ڕەنگ</button>
+        <button class="btn-action" onclick="toggleHistory(true)">📜 مێژوو</button>
+        <button class="btn-action" onclick="toggleAbout(true)">ℹ️ دەربارە</button>
+    </div>
+    <div id="tablesView" class="tables-container"></div>
+</div>
+
+<div id="historyView" class="overlay-screen">
+    <div class="overlay-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap:10px;">
+            <h2 style="color:var(--accent); margin:0; font-size: 1.2rem;">📜 مێژووی فرۆشتن</h2>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-action" style="color:var(--danger); border-color:var(--danger); padding: 8px 12px;" onclick="clearAllHistory()">🗑️ سڕینەوە</button>
+                <button class="btn-action" style="padding: 8px 12px;" onclick="toggleHistory(false)">داخستن</button>
+            </div>
+        </div>
+        <div id="historyList" class="history-list"></div>
+        <div style="border-top:1px solid var(--border); padding-top:15px; font-size: 0.9rem;">
+            <div style="display:flex; justify-content:space-between; color:var(--text-muted);">
+                <span>کۆی پاستا:</span> <span id="hTotalPasta">0 دینار</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom: 5px;">
+                <span>کۆی کونافە:</span> <span id="hTotalOthers">0 دینار</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-weight:800; font-size: 1.2rem;">
+                <span>کۆی گشتی:</span> <span id="historyGrandTotal" style="color:var(--accent)">0 دینار</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="aboutView" class="overlay-screen">
+    <div class="overlay-content" style="max-width:450px; min-height:auto; text-align:center; margin: 10vh auto;">
+        <h2 style="color:var(--accent)">ℹ️ زانیاری خاوەندارێتی</h2>
+        <div style="margin:20px 0; line-height:2; font-size:1rem;">
+            <div style="border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:10px;">
+                OWNER : <span style="color:var(--accent)">SORAN MUHAMMED</span>
+            </div>
+            <div>
+                OWNER OF PASTA SORAN : <br><span style="color:var(--accent)">ISMAHIL MUHAMMED</span>
+            </div>
+        </div>
+        <button class="btn-action" style="width:100%" onclick="toggleAbout(false)">داخستن</button>
+    </div>
+</div>
+
+<div id="posView" class="pos-screen">
+   <div class="pos-layout">
+       <div class="main-panel">
+           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+               <button class="btn-action" onclick="back()">← گەڕانەوە</button>
+               <div id="peopleSelector" style="display:flex; gap:5px; overflow-x: auto; padding-bottom:5px; max-width: 100%;"></div>
+           </div>
+           <div class="categories">
+               <div class="cat-btn active" onclick="showCat('kunafe', this)">کونافە</div>
+               <div class="cat-btn" onclick="showCat('crepe', this)">کریپ</div>
+               <div class="cat-btn" onclick="showCat('juice', this)">شەربەت</div>
+               <div class="cat-btn" onclick="showCat('pasta', this)">پاستا</div>
+           </div>
+           <div id="itemsGrid" class="items-grid"></div>
+       </div>
+       <div class="receipt-panel">
+           <div style="text-align:center; margin-bottom:15px;">
+               <h2 id="receiptTableName" style="margin:0;">مێزی ١</h2>
+               <p id="receiptPeopleCount" style="color:var(--accent); font-weight: 700; margin:5px 0; font-size: 1.2rem;">0/1</p>
+           </div>
+           <div id="orderList" style="flex:1; overflow-y:auto; border-bottom: 1px solid var(--border);"></div>
+           <div class="receipt-summary">
+               <div class="grand-total" style="display:flex; justify-content:space-between;">
+                   <span>کۆی گشتی</span><span id="grandTotal">0 دینار</span>
+               </div>
+               <div id="pastaSubtotalRow" style="display:none; color:var(--danger); font-weight:800; justify-content:space-between; margin-top:5px; font-size:0.9rem;">
+                   <span>کۆی پاستا</span><span id="pastaTotal">0 دینار</span>
+               </div>
+               <button class="btn-action" style="width:100%; background:var(--accent); color:#000; margin-top:15px; border:none; height:50px; font-size:18px;" onclick="printOrder()">چاپکردن</button>
+               <button class="btn-action" onclick="resetTable()" style="width:100%; margin-top:10px; color:var(--danger); border-color:var(--danger)">پاککردنەوە</button>
+           </div>
+       </div>
+   </div>
+</div>
+
+<script>
+const menu = {
+   kunafe: [["کونافە گوێز", 4000], ["کونافە خامە", 4000], ["کونافە پەنیر", 5000], ["کونافە فستق", 5000], ["کونافە سپیشەڵ", 6000], ["کونافە فستق زادە", 7000], ["کونافە گوێز زادە", 5000]],
+   crepe: [["کریپ نۆتێلا", 3500], ["کریپ ئۆریۆ", 4000], ["کریپ لۆتۆس", 5000], ["کریپ سپیشەڵ", 6000]],
+   juice: [["شەربەتی پرتەقاڵ", 2500], ["شەربەتی مۆز", 2500], ["ئۆریۆ شەیک", 3000], ["شەربەتی تێکەڵ", 3000], ["سۆدە", 1500]],
+   pasta: [["سۆر ناو پەنیر", 4000], ["سۆر سەر پەنیر", 5000], ["سپی ناو پەنیر", 4000], ["سپی سەر پەنیر", 5000], ["سۆر گۆشت", 6000], ["سپی گۆشت", 6000]]
+};
+
+let tables = Array.from({length: 8}, () => ({items: {}, total: 0, pastaTotal: 0, people: 1, showPeople: false}));
+let historyData = [];
+let current = 0;
+const formatIQD = n => new Intl.NumberFormat('en-IQ').format(n) + " دینار";
+
+function toggleTheme() {
+    const body = document.body;
+    const themes = ['emerald-comfort', 'midnight-blue', 'onyx-black'];
+    let currentIdx = themes.indexOf(body.getAttribute('data-theme'));
+    let nextIdx = (currentIdx + 1) % themes.length;
+    body.setAttribute('data-theme', themes[nextIdx]);
+}
+
+function renderTables() {
+   const container = document.getElementById("tablesView");
+   container.innerHTML = "";
+   tables.forEach((tb, i) => {
+       const hasOrder = Object.keys(tb.items).length > 0;
+       const card = document.createElement("div");
+       card.className = "table-card" + (hasOrder ? " active-table" : "");
+       card.onclick = () => openTable(i);
+       let kunafes = 0;
+       for(let n in tb.items) if(tb.items[n].cat === 'kunafe') kunafes += tb.items[n].qty;
+       card.innerHTML = `
+            <div class="table-main-number">${i+1}</div>
+            <div class="badge-container">
+                ${tb.showPeople ? `<div class="badge">${kunafes}/${tb.people} 👤</div>` : ''}
+                ${(tb.total+tb.pastaTotal) > 0 ? `<div class="badge">${formatIQD(tb.total + tb.pastaTotal)}</div>` : ''}
+            </div>`;
+       container.appendChild(card);
+   });
+}
+
+function openTable(i) {
+   current = i;
+   document.getElementById("tablesViewWrapper").style.display = "none";
+   document.getElementById("posView").style.display = "block";
+   document.getElementById("receiptTableName").innerText = `مێزی ${i+1}`;
+   renderPeople(); renderOrder();
+   showCat('kunafe', document.querySelector('.cat-btn.active'));
+   window.scrollTo(0,0);
+}
+
+function renderPeople() {
+   const container = document.getElementById("peopleSelector"); container.innerHTML = "";
+   for(let i=1; i<=10; i++){
+       const btn = document.createElement("button");
+       btn.className = "btn-action";
+       btn.style = `padding:8px 12px; min-width:45px; background:${tables[current].people===i ? 'var(--accent)' : 'var(--bg-card)'}; color:${tables[current].people===i ? '#000' : 'var(--accent)'}`;
+       btn.innerText = i;
+       btn.onclick = () => { 
+           tables[current].people = i; 
+           tables[current].showPeople = true; 
+           renderPeople();
+           renderOrder(); 
+       };
+       container.appendChild(btn);
+   }
+}
+
+function showCat(cat, el) {
+   document.querySelectorAll(".cat-btn").forEach(c => c.classList.remove("active"));
+   el.classList.add("active");
+   const container = document.getElementById("itemsGrid"); container.innerHTML = "";
+   menu[cat].forEach(([name, price]) => {
+       const card = document.createElement("div");
+       card.className = "item-card";
+       card.onclick = () => {
+           let t = tables[current];
+           if(!t.items[name]) t.items[name] = {qty:0, price, cat};
+           t.items[name].qty++;
+           if(cat === 'pasta') t.pastaTotal += price; else t.total += price;
+           renderOrder();
+       };
+       card.innerHTML = `<div>${name}</div><div style="color:var(--accent); font-weight:700;">${formatIQD(price)}</div>`;
+       container.appendChild(card);
+   });
+}
+
+function removeItem(name) {
+    let t = tables[current];
+    if (t.items[name]) {
+        if (t.items[name].cat === 'pasta') t.pastaTotal -= t.items[name].price;
+        else t.total -= t.items[name].price;
+        t.items[name].qty--;
+        if (t.items[name].qty <= 0) delete t.items[name];
+        renderOrder();
+    }
+}
+
+function renderOrder() {
+   let t = tables[current]; 
+   const list = document.getElementById("orderList"); 
+   list.innerHTML = "";
+   let kunafeCount = 0;
+
+   for(let n in t.items){
+       let it = t.items[n];
+       if(it.cat === 'kunafe') kunafeCount += it.qty;
+       const row = document.createElement("div");
+       row.className = "order-row";
+       row.onclick = () => removeItem(n);
+       row.innerHTML = `<span><b>${it.qty}x</b> ${n}</span><span>${formatIQD(it.qty*it.price)}</span>`;
+       list.appendChild(row);
+   }
+   
+   document.getElementById("receiptPeopleCount").innerText = `${kunafeCount}/${t.people}`;
+   document.getElementById("grandTotal").innerText = formatIQD(t.total + t.pastaTotal);
+   const pRow = document.getElementById("pastaSubtotalRow");
+   if(t.pastaTotal > 0) { pRow.style.display = "flex"; document.getElementById("pastaTotal").innerText = formatIQD(t.pastaTotal); }
+   else pRow.style.display = "none";
+}
+
+function printOrder() { 
+    let t = tables[current];
+    let kunafeCount = 0;
+    for(let n in t.items) if(t.items[n].cat === 'kunafe') kunafeCount += t.items[n].qty;
+    alert(`پسوڵە چاپکرا\nڕێژە: ${kunafeCount}/${t.people}`); 
+}
+
+function toggleHistory(show) {
+    document.getElementById("historyView").style.display = show ? "block" : "none";
+    if(show) updateHistoryDisplay();
+}
+
+function updateHistoryDisplay() {
+    const list = document.getElementById("historyList");
+    list.innerHTML = "";
+    let pastaSum = 0, otherSum = 0;
+    historyData.forEach(entry => {
+        pastaSum += entry.pastaTotal;
+        otherSum += entry.total;
+        list.innerHTML += `<div class="history-item">
+            <div><b style="color:var(--accent)">مێزی ${entry.table}</b><br><small>${entry.time} | ${entry.ratio}</small></div>
+            <div style="text-align:left">
+                <div style="color:var(--danger)">پاستا: ${formatIQD(entry.pastaTotal)}</div>
+                <div style="color:var(--text-muted)">کونافە: ${formatIQD(entry.total)}</div>
+            </div>
+        </div>`;
+    });
+    document.getElementById("hTotalPasta").innerText = formatIQD(pastaSum);
+    document.getElementById("hTotalOthers").innerText = formatIQD(otherSum);
+    document.getElementById("historyGrandTotal").innerText = formatIQD(pastaSum + otherSum);
+}
+
+function clearAllHistory() {
+    if(historyData.length === 0) return;
+    if(confirm("ئایا دڵنیایت لە سڕینەوە؟")) {
+        historyData = [];
+        updateHistoryDisplay();
+    }
+}
+
+function toggleAbout(show) {
+    document.getElementById("aboutView").style.display = show ? "block" : "none";
+}
+
+function resetTable() { 
+    let t = tables[current];
+    if(Object.keys(t.items).length === 0) { back(); return; }
+    if(confirm("زانیارییەکان دەچنە مێژوو. دڵنیایت؟")) { 
+        const now = new Date();
+        let kunafeCount = 0;
+        for(let n in t.items) if(t.items[n].cat === 'kunafe') kunafeCount += t.items[n].qty;
+        historyData.push({ 
+            table: current + 1, 
+            time: now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0'), 
+            total: t.total, 
+            pastaTotal: t.pastaTotal, 
+            ratio: `${kunafeCount}/${t.people}` 
+        });
+        tables[current] = {items:{}, total:0, pastaTotal:0, people:1, showPeople:false}; 
+        back(); 
+    } 
+}
+
+function back() { 
+    document.getElementById("posView").style.display = "none"; 
+    document.getElementById("tablesViewWrapper").style.display = "block"; 
+    renderTables(); 
+}
+
+renderTables();
+</script>
+</body>
+</html>
